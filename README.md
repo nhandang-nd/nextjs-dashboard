@@ -139,3 +139,135 @@ Don't be afraid to experiment with Suspense and see what works best, it's a powe
 
 Move data fetches down to the components that need it.
 By moving data fetching down to the components that need it, you can create more granular Suspense boundaries. This allows you to stream specific components and prevent the UI from blocking.
+
+# defaultValue vs. value / Controlled vs. Uncontrolled
+
+If you're using state to manage the value of an input, you'd use the value attribute to make it a controlled component. This means React would manage the input's state.
+
+However, since you're not using state, you can use defaultValue. This means the native input will manage its own state. This is okay since you're saving the search query to the URL instead of state.
+
+# ❓ When to use the useSearchParams() hook vs. the searchParams prop?
+
+You might have noticed you used two different ways to extract search params. Whether you use one or the other depends on whether you're working on the client or the server.
+
+`<Search>` is a Client Component, so you used the useSearchParams() hook to access the params from the client.
+
+`<Table>` is a Server Component that fetches its own data, so you can pass the searchParams prop from the page to the component.
+
+As a general rule, if you want to read the params from the client, use the useSearchParams() hook as this avoids having to go back to the server.
+
+# How Debouncing Works:
+
+1. **Trigger Event**: When an event that should be debounced (like a keystroke in the search box) occurs, a timer starts.
+2. **Wait**: If a new event occurs before the timer expires, the timer is reset.
+3. **Execution**: If the timer reaches the end of its countdown, the debounced function is executed.
+
+# What are Server Actions?
+
+React Server Actions allow you to run asynchronous code directly on the server. They eliminate the need to create API endpoints to mutate your data. Instead, you write asynchronous functions that execute on the server and can be invoked from your Client or Server Components.
+
+Security is a top priority for web applications, as they can be vulnerable to various threats. This is where Server Actions come in. They offer an effective security solution, protecting against different types of attacks, securing your data, and ensuring authorized access. Server Actions achieve this through techniques like POST requests, encrypted closures, strict input checks, error message hashing, and host restrictions, all working together to significantly enhance your app's safety.
+
+# Good to know:
+
+In HTML, you'd pass a URL to the action attribute. This URL would be the destination where your form data should be submitted (usually an API endpoint).
+
+However, in React, the action attribute is considered a special prop - meaning React builds on top of it to allow actions to be invoked. Rather than calling an API explicitly, you can pass a function to action.
+
+Behind the scenes, Server Actions create a POST API endpoint. This is why you don't need to create API endpoints manually when using Server Actions.
+
+# Zod
+
+```
+'use server';
+
+import { z } from 'zod';
+
+const InvoiceSchema = z.object({
+  id: z.string(),
+  customerId: z.string(),
+  amount: z.coerce.number(),
+  status: z.enum(['pending', 'paid']),
+  date: z.string(),
+});
+
+const CreateInvoice = InvoiceSchema.omit({ id: true, date: true });
+
+export async function createInvoice(formData: FormData) {
+  // ...
+}
+
+```
+
+# Storing values in cents
+
+It's usually good practice to store monetary values in cents in your database to eliminate JavaScript floating-point errors and ensure greater accuracy.
+
+```
+const amountInCents = amount * 100;
+```
+
+# [Router Cache](https://nextjs.org/docs/app/building-your-application/caching#router-cache)
+
+# Pass the id to the Server Action
+
+Lastly, you want to pass the `id` to the Server Action so you can update the right record in your database. You cannot pass the `id` as an argument like so:
+
+```
+// Passing an id as argument won't work
+<form action={updateInvoice(id)}>
+```
+
+Instead, you can pass `id` to the Server Action using JS `bind`. This will ensure that any values passed to the Server Action are encoded.
+
+```
+ const updateInvoiceWithId = updateInvoice.bind(null, invoice.id);
+
+  return (
+    <form action={updateInvoiceWithId}>
+      <input type="hidden" name="id" value={invoice.id} />
+    </form>
+  );
+```
+
+# [error.js](https://nextjs.org/docs/app/api-reference/file-conventions/error)
+
+There are a few things you'll notice about the code above:
+
+- "use client" - error.tsx needs to be a Client Component.
+- It accepts two props:
+  - `error`: This object is an instance of JavaScript's native Error object.
+  - `reset`: This is a function to reset the error boundary. When executed, the function will try to re-render the route segment.
+
+# Server-Side validation
+
+By validating forms on the server, you can:
+
+- Ensure your data is in the expected format before sending it to your database.
+- Reduce the risk of malicious users bypassing client-side validation.
+- Have one source of truth for what is considered valid data.
+
+# What is authentication?
+
+Authentication is a key part of many web applications today. It's how a system checks if the user is who they say they are.
+
+A secure website often uses multiple ways to check a user's identity for enhanced security. For instance, after entering your username and password, the site may send a verification code to your device or use an external app like Google Authenticator. This 2-factor authentication (2FA) helps increase security. Even if someone learns your password, they can't access your account without your unique token.
+
+# Authentication vs. Authorization
+
+In web development, authentication and authorization serve different roles:
+
+- **Authentication** is about making sure the user is who they say they are. You're proving your identity with something you have like a username and password.
+- **Authorization** is the next step. Once a user's identity is confirmed, authorization decides what parts of the application they are allowed to use.
+  So, authentication checks who you are, and authorization determines what you can do or access in the application.
+
+  [next-auth](https://authjs.dev/reference/nextjs)
+
+# [Metadata](https://nextjs.org/learn/dashboard-app/adding-metadata)
+
+# Resources
+
+- [Next.js Documentation](https://nextjs.org/docs)
+- [Next.js Templates](https://vercel.com/templates?framework=next.js)
+- [Next.js Repository](https://github.com/vercel/next.js)
+- [Vercel YouTube](https://www.youtube.com/@VercelHQ/videos)
